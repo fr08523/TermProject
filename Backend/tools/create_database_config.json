@@ -1,0 +1,70 @@
+{
+	"operation": "create",
+    "database": "sms",
+    "host": "127.0.0.1",
+    "user": "postgres",
+    "password": "",
+    "port": 5432,
+    "tables": {
+        "week": {
+            "season_id": "PRIMARY KEY TEXT",
+            "year": "TEXT",
+            "week_id": "TEXT",
+            "week_num": "FOREIGN KEY TEXT"
+        },
+        "game": {
+            "game_id": "PRIMARY KEY TEXT",
+            "season_id": "FOREIGN KEY TEXT",
+            "week_id": "FOREIGN KEY TEXT",
+            "status": "TEXT",
+            "scheduled": "TIMESTAMP",
+            "conference_game": "BOOLEAN",
+            "venue_id": "TEXT",
+            "home_team_id":  "TEXT",
+            "home_team_name":  "TEXT",
+            "home_team_abbreviation":  "TEXT",
+            "home_team_games_played":  "INTEGER",
+            "away_team_id":  "TEXT",
+            "away_team_name":  "TEXT",
+            "away_team_abbreviation":  "TEXT",
+            "away_team_games_played":  "INTEGER",
+            "venue_timezone": "TEXT",
+            "home_timezone": "TEXT",
+            "away_timezone": "TEXT",
+            "broadcast_network": "TEXT",
+            "home_points": "INTEGER",
+            "away_points": "INTEGER"
+        },
+        "venue": {
+            "venue_id": "PRIMARY KEY TEXT",
+            "venue_name": "TEXT",
+            "venue_city": "TEXT",
+            "venue_state": "TEXT",
+            "venue_country": "TEXT",
+            "surface": "TEXT",
+            "roof_type": "TEXT"
+        },
+        "weather": {
+            "id": "SERIAL PRIMARY KEY",
+            "game_id": "FOREIGN KEY TEXT",
+            "condition": "TEXT",
+            "humidity": "INTEGER",
+            "temp": "INTEGER",
+            "wind_speed": "TEXT",
+            "wind_direction": "TEXT"
+        },
+        "weeks": {
+            "season_id": "FOREIGN KEY TEXT",
+            "week_id": "PRIMARY KEY TEXT",
+            "sequence": "INTEGER",
+            "title": "TEXT"
+        },
+        "season": {
+            "season_id": "PRIMARY KEY TEXT",
+            "year": "TEXT",
+            "type": "TEXT",
+            "name": "TEXT"
+        }
+    }
+
+}

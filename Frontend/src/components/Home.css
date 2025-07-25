@@ -1,0 +1,138 @@
+/* General body styling */
+body {
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e6e6e6; /* Light gray background */
+    color: #333; /* Dark gray text */
+  }
+  
+  /* Container for the entire form and results */
+  .home-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title styling */
+  .form-header h2 {
+    text-align: center;
+    font-size: 24px;
+    color: #d10024; /* ESPN red */
+    margin-bottom: 20px;
+  }
+  
+  /* Form section styling */
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .input-group label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: left;
+    width: 50%;
+  }
+  
+  .input-group input {
+    width: 50%; /* Shrinks input to half its container width */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  /* Button styling */
+  .btn-group {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .btn-group button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #d10024; /* ESPN red */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
+  .btn-group button:hover {
+    background-color: #a5001c; /* Slightly darker red */
+  }
+  
+  /* Error message */
+  .error-message p {
+    color: #d10024;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  /* Results section */
+  .results-section h3 {
+    font-size: 20px;
+    color: #333;
+    margin-top: 30px;
+    text-align: center;
+  }
+  
+  .results-list {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 20px;
+  }
+  
+  .result-item {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    font-size: 16px;
+  }
+  
+  .result-item:last-child {
+    border-bottom: none;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .home-container {
+      padding: 15px;
+    }
+  
+    .form-header h2 {
+      font-size: 20px;
+    }
+  
+    .input-group input {
+      width: 80%; /* Adjusts input width for smaller screens */
+      font-size: 14px;
+    }
+  
+    .btn-group button {
+      font-size: 14px;
+    }
+  
+    .results-section h3 {
+      font-size: 18px;
+    }
+  
+    .result-item {
+      font-size: 14px;
+    }
+  }
+  
