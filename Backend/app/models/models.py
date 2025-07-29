@@ -2,13 +2,23 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
+# ---------- auth ----------
 class User(db.Model):
     id       = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     _pw_hash = db.Column(db.String(200), nullable=False)
-    def set_password(self, pw):  self._pw_hash = generate_password_hash(pw)
-    def check_password(self, pw):return check_password_hash(self._pw_hash, pw)
 
+    def set_password(self, pw):  # hash on save
+        self._pw_hash = generate_password_hash(pw)
+
+    def check_password(self, pw):  # verify on login
+        return check_password_hash(self._pw_hash, pw)
+
+    # for /auth/me etc.
+    def to_dict(self):
+        return {"id": self.id, "username": self.username}
+
+# ---------- core ----------
 class League(db.Model):
     id     = db.Column(db.Integer, primary_key=True)
     name   = db.Column(db.String(120), unique=True, nullable=False)
