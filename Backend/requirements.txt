@@ -1,5 +1,11 @@
 psycopg2-binary
 werkzeug
 Flask
+Flask-Cors
 Flask-JWT-Extended
 Flask-SQLAlchemy
+python-dotenv
+Flask-Migrate
+
+
+
