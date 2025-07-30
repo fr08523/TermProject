@@ -6,6 +6,7 @@ Flask-JWT-Extended
 Flask-SQLAlchemy
 python-dotenv
 Flask-Migrate
+bcrypt==4.3.0
 
 
 
