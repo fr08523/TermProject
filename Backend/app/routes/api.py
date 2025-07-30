@@ -36,11 +36,8 @@ def list_teams():
     league_id = request.args.get("league_id", type=int)
     name_filter = request.args.get("name")
     
-    # Enhanced query with league information
-    query = db.session.query(
-        Team,
-        League.name.label('league_name')
-    ).select_from(Team).join(League, Team.league_id == League.id)
+    # Start with basic Team query
+    query = Team.query
     
     # Apply filters
     if league_id:
@@ -49,20 +46,23 @@ def list_teams():
     if name_filter:
         query = query.filter(Team.name.ilike(f"%{name_filter}%"))
     
-    results = query.all()
+    teams = query.all()
     
-    return jsonify([
-        {
-            "id": result.Team.id,
-            "name": result.Team.name,
-            "home_city": result.Team.home_city,
-            "head_coach": result.Team.head_coach,
-            "stadium": result.Team.stadium,
-            "league_id": result.Team.league_id,
-            "league_name": result.league_name
-        }
-        for result in results
-    ])
+    # Build response with league names
+    result = []
+    for team in teams:
+        league = League.query.get(team.league_id)
+        result.append({
+            "id": team.id,
+            "name": team.name,
+            "home_city": team.home_city,
+            "head_coach": team.head_coach,
+            "stadium": team.stadium,
+            "league_id": team.league_id,
+            "league_name": league.name if league else "Unknown"
+        })
+    
+    return jsonify(result)
 
 @api_bp.post("/teams")
 @jwt_required()
@@ -82,12 +82,8 @@ def list_players():
     team_id = request.args.get("team_id", type=int)
     position = request.args.get("position")
     
-    # Enhanced query with team information
-    query = db.session.query(
-        Player,
-        Team.name.label('team_name'),
-        League.name.label('league_name')
-    ).select_from(Player).join(Team, Player.team_id == Team.id).join(League, Team.league_id == League.id)
+    # Start with basic Player query
+    query = Player.query
     
     # Apply filters
     if name_filter:
@@ -99,73 +95,91 @@ def list_players():
     if position:
         query = query.filter(Player.position.ilike(f"%{position}%"))
     
-    results = query.all()
+    players = query.all()
     
-    return jsonify([
-        {
-            "id": result.Player.id,
-            "name": result.Player.name,
-            "position": result.Player.position,
-            "team_id": result.Player.team_id,
-            "team_name": result.team_name,
-            "league_name": result.league_name,
-            "career_passing_yards": result.Player.career_passing_yards,
-            "career_rushing_yards": result.Player.career_rushing_yards,
-            "career_receiving_yards": result.Player.career_receiving_yards,
-            "career_tackles": result.Player.career_tackles,
-            "career_sacks": result.Player.career_sacks,
-            "career_interceptions": result.Player.career_interceptions,
-            "career_touchdowns": result.Player.career_touchdowns
-        }
-        for result in results
-    ])
+    # Build response with team and league names
+    result = []
+    for player in players:
+        team = Team.query.get(player.team_id)
+        league = League.query.get(team.league_id) if team else None
+        
+        result.append({
+            "id": player.id,
+            "name": player.name,
+            "position": player.position,
+            "team_id": player.team_id,
+            "team_name": team.name if team else "Unknown",
+            "league_name": league.name if league else "Unknown",
+            "career_passing_yards": player.career_passing_yards,
+            "career_rushing_yards": player.career_rushing_yards,
+            "career_receiving_yards": player.career_receiving_yards,
+            "career_tackles": player.career_tackles,
+            "career_sacks": player.career_sacks,
+            "career_interceptions": player.career_interceptions,
+            "career_touchdowns": player.career_touchdowns
+        })
+    
+    return jsonify(result)
 
 @api_bp.get("/players/<int:player_id>/stats")
 def get_player_stats(player_id):
     """Get detailed stats for a specific player"""
     # Get player info
     player = Player.query.get_or_404(player_id)
+    team = Team.query.get(player.team_id)
     
-    # Get game stats with game details
-    stats_query = db.session.query(
-        PlayerGameStats,
-        Game.season_year,
-        Game.week,
-        Game.game_date,
-        Game.home_score,
-        Game.away_score,
-        Team.name.label('opponent_team')
-    ).join(Game).join(
-        Team, 
-        case(
-            (Game.home_team_id == player.team_id, Game.away_team_id),
-            else_=Game.home_team_id
-        ) == Team.id
-    ).filter(PlayerGameStats.player_id == player_id).order_by(Game.game_date.desc())
+    # Get game stats for this player
+    game_stats = PlayerGameStats.query.filter_by(player_id=player_id).all()
     
-    stats_results = stats_query.all()
+    # Get game details for each stat
+    game_logs = []
+    total_passing = total_rushing = total_receiving = total_touchdowns = 0
     
-    # Calculate totals and averages
-    total_games = len(stats_results)
-    if total_games > 0:
-        total_passing = sum(s.PlayerGameStats.passing_yards for s in stats_results)
-        total_rushing = sum(s.PlayerGameStats.rushing_yards for s in stats_results)
-        total_receiving = sum(s.PlayerGameStats.receiving_yards for s in stats_results)
-        total_touchdowns = sum(s.PlayerGameStats.touchdowns for s in stats_results)
-        
-        avg_passing = total_passing / total_games
-        avg_rushing = total_rushing / total_games
-        avg_receiving = total_receiving / total_games
-    else:
-        total_passing = total_rushing = total_receiving = total_touchdowns = 0
-        avg_passing = avg_rushing = avg_receiving = 0
+    for stat in game_stats:
+        game = Game.query.get(stat.game_id)
+        if game:
+            # Determine opponent team
+            opponent_team_id = game.away_team_id if game.home_team_id == player.team_id else game.home_team_id
+            opponent_team = Team.query.get(opponent_team_id)
+            
+            game_logs.append({
+                "game_id": stat.game_id,
+                "season_year": game.season_year,
+                "week": game.week,
+                "game_date": game.game_date.isoformat() if game.game_date else None,
+                "opponent": opponent_team.name if opponent_team else "Unknown",
+                "home_score": game.home_score,
+                "away_score": game.away_score,
+                "passing_yards": stat.passing_yards,
+                "rushing_yards": stat.rushing_yards,
+                "receiving_yards": stat.receiving_yards,
+                "touchdowns": stat.touchdowns,
+                "tackles": stat.tackles,
+                "sacks": stat.sacks,
+                "interceptions": stat.interceptions
+            })
+            
+            # Accumulate totals
+            total_passing += stat.passing_yards
+            total_rushing += stat.rushing_yards
+            total_receiving += stat.receiving_yards
+            total_touchdowns += stat.touchdowns
+    
+    # Calculate averages
+    total_games = len(game_stats)
+    avg_passing = total_passing / total_games if total_games > 0 else 0
+    avg_rushing = total_rushing / total_games if total_games > 0 else 0
+    avg_receiving = total_receiving / total_games if total_games > 0 else 0
+    
+    # Sort game logs by date (most recent first)
+    game_logs.sort(key=lambda x: x['game_date'] or '', reverse=True)
     
     return jsonify({
         "player": {
             "id": player.id,
             "name": player.name,
             "position": player.position,
-            "team_name": player.current_team.name,
+            "team_name": team.name if team else "Unknown",
             "career_passing_yards": player.career_passing_yards,
             "career_rushing_yards": player.career_rushing_yards,
             "career_receiving_yards": player.career_receiving_yards,
@@ -181,25 +195,7 @@ def get_player_stats(player_id):
             "avg_rushing_yards": round(avg_rushing, 1),
             "avg_receiving_yards": round(avg_receiving, 1)
         },
-        "game_logs": [
-            {
-                "game_id": result.PlayerGameStats.game_id,
-                "season_year": result.season_year,
-                "week": result.week,
-                "game_date": result.game_date.isoformat() if result.game_date else None,
-                "opponent": result.opponent_team,
-                "home_score": result.home_score,
-                "away_score": result.away_score,
-                "passing_yards": result.PlayerGameStats.passing_yards,
-                "rushing_yards": result.PlayerGameStats.rushing_yards,
-                "receiving_yards": result.PlayerGameStats.receiving_yards,
-                "touchdowns": result.PlayerGameStats.touchdowns,
-                "tackles": result.PlayerGameStats.tackles,
-                "sacks": result.PlayerGameStats.sacks,
-                "interceptions": result.PlayerGameStats.interceptions
-            }
-            for result in stats_results
-        ]
+        "game_logs": game_logs
     })
 
 @api_bp.post("/players")
@@ -281,55 +277,58 @@ def list_stats():
     team_id = request.args.get("team_id")
     season_year = request.args.get("season_year", type=int)
     
-    # Start with a query that joins with Player and Game tables
-    query = db.session.query(
-        PlayerGameStats,
-        Player.name.label('player_name'),
-        Player.position.label('player_position'),
-        Team.name.label('team_name'),
-        Game.season_year,
-        Game.week,
-        Game.game_date
-    ).join(Player).join(Team, Player.team_id == Team.id).join(Game)
+    # Start with basic PlayerGameStats query
+    stats = PlayerGameStats.query.all()
     
-    # Apply filters
-    if player_name:
-        # Safe filtering using LIKE with parameter binding
-        query = query.filter(Player.name.ilike(f"%{player_name}%"))
+    # Build response with player and game details
+    result = []
+    for stat in stats:
+        player = Player.query.get(stat.player_id)
+        if not player:
+            continue
+            
+        # Apply player name filter
+        if player_name and not player.name.lower().find(player_name.lower()) >= 0:
+            continue
+            
+        # Apply team filter
+        if team_id and str(player.team_id) != str(team_id):
+            continue
+        
+        game = Game.query.get(stat.game_id)
+        if not game:
+            continue
+            
+        # Apply season filter
+        if season_year and game.season_year != season_year:
+            continue
+        
+        team = Team.query.get(player.team_id)
+        
+        result.append({
+            "player_id": stat.player_id,
+            "game_id": stat.game_id,
+            "player_name": player.name,
+            "player_position": player.position,
+            "team_name": team.name if team else "Unknown",
+            "season_year": game.season_year,
+            "week": game.week,
+            "game_date": game.game_date.isoformat() if game.game_date else None,
+            "passing_yards": stat.passing_yards,
+            "rushing_yards": stat.rushing_yards,
+            "receiving_yards": stat.receiving_yards,
+            "tackles": stat.tackles,
+            "sacks": stat.sacks,
+            "interceptions": stat.interceptions,
+            "touchdowns": stat.touchdowns,
+            "field_goals_made": stat.field_goals_made,
+            "extra_points_made": stat.extra_points_made,
+        })
     
-    if team_id:
-        query = query.filter(Player.team_id == team_id)
+    # Sort by most recent games first
+    result.sort(key=lambda x: x['game_date'] or '', reverse=True)
     
-    if season_year:
-        query = query.filter(Game.season_year == season_year)
-    
-    # Order by most recent games first
-    query = query.order_by(Game.game_date.desc())
-    
-    results = query.all()
-    
-    return jsonify([
-        {
-            "player_id": result.PlayerGameStats.player_id,
-            "game_id": result.PlayerGameStats.game_id,
-            "player_name": result.player_name,
-            "player_position": result.player_position,
-            "team_name": result.team_name,
-            "season_year": result.season_year,
-            "week": result.week,
-            "game_date": result.game_date.isoformat() if result.game_date else None,
-            "passing_yards": result.PlayerGameStats.passing_yards,
-            "rushing_yards": result.PlayerGameStats.rushing_yards,
-            "receiving_yards": result.PlayerGameStats.receiving_yards,
-            "tackles": result.PlayerGameStats.tackles,
-            "sacks": result.PlayerGameStats.sacks,
-            "interceptions": result.PlayerGameStats.interceptions,
-            "touchdowns": result.PlayerGameStats.touchdowns,
-            "field_goals_made": result.PlayerGameStats.field_goals_made,
-            "extra_points_made": result.PlayerGameStats.extra_points_made,
-        }
-        for result in results
-    ])
+    return jsonify(result)
 
 @api_bp.post("/stats")
 @jwt_required()

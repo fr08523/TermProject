@@ -279,34 +279,109 @@ def injury_report():
         for row in results
     ])
 
-@analytics_bp.get("/sql-injection-demo")
-@jwt_required()
-def sql_injection_demo():
+@analytics_bp.get("/top-performers")
+def top_performers():
     """
-    Demonstrates SQL injection prevention techniques.
-    Shows both vulnerable and safe approaches for educational purposes.
+    Advanced analytics query for top performing players.
+    Demonstrates complex aggregations and rankings.
     """
-    team_name = request.args.get('team_name', '')
+    # Get top passing leaders
+    passing_leaders = db.session.query(
+        Player.name,
+        Player.position,
+        Team.name.label('team_name'),
+        func.sum(PlayerGameStats.passing_yards).label('total_passing'),
+        func.count(PlayerGameStats.game_id).label('games_played'),
+        func.avg(PlayerGameStats.passing_yards).label('avg_passing')
+    ).join(Team, Player.team_id == Team.id)\
+     .join(PlayerGameStats, Player.id == PlayerGameStats.player_id)\
+     .filter(PlayerGameStats.passing_yards > 0)\
+     .group_by(Player.id, Player.name, Player.position, Team.name)\
+     .order_by(func.sum(PlayerGameStats.passing_yards).desc())\
+     .limit(5).all()
     
-    # SAFE: Using SQLAlchemy ORM (parameterized queries)
-    safe_results = Team.query.filter(Team.name.like(f'%{team_name}%')).all()
-    
-    # SAFE: Using text() with bound parameters (SQLite compatible)
-    safe_sql_results = db.session.execute(
-        text("SELECT * FROM team WHERE name LIKE :team_name"),
-        {'team_name': f'%{team_name}%'}
-    ).fetchall()
+    # Get top rushing leaders
+    rushing_leaders = db.session.query(
+        Player.name,
+        Player.position,
+        Team.name.label('team_name'),
+        func.sum(PlayerGameStats.rushing_yards).label('total_rushing'),
+        func.count(PlayerGameStats.game_id).label('games_played'),
+        func.avg(PlayerGameStats.rushing_yards).label('avg_rushing')
+    ).join(Team, Player.team_id == Team.id)\
+     .join(PlayerGameStats, Player.id == PlayerGameStats.player_id)\
+     .filter(PlayerGameStats.rushing_yards > 0)\
+     .group_by(Player.id, Player.name, Player.position, Team.name)\
+     .order_by(func.sum(PlayerGameStats.rushing_yards).desc())\
+     .limit(5).all()
     
     return jsonify({
-        'message': 'SQL Injection Prevention Demonstration',
-        'user_input': team_name,
-        'safe_orm_results': [{'id': t.id, 'name': t.name} for t in safe_results],
-        'safe_sql_count': len(safe_sql_results),
-        'explanation': {
-            'orm_protection': 'SQLAlchemy ORM automatically escapes parameters',
-            'bound_parameters': 'Using text() with bound parameters prevents injection',
-            'never_do': 'Never concatenate user input directly into SQL strings',
-            'example_attack': "'; DROP TABLE team; --",
-            'why_safe': 'Parameters are escaped/quoted automatically by SQLAlchemy'
-        }
+        "passing_leaders": [
+            {
+                "name": row.name,
+                "position": row.position,
+                "team": row.team_name,
+                "total_yards": int(row.total_passing),
+                "games_played": row.games_played,
+                "avg_per_game": round(float(row.avg_passing), 1)
+            }
+            for row in passing_leaders
+        ],
+        "rushing_leaders": [
+            {
+                "name": row.name,
+                "position": row.position,
+                "team": row.team_name,
+                "total_yards": int(row.total_rushing),
+                "games_played": row.games_played,
+                "avg_per_game": round(float(row.avg_rushing), 1)
+            }
+            for row in rushing_leaders
+        ]
     })
+
+@analytics_bp.get("/team-comparison")
+def team_comparison():
+    """
+    Complex team comparison analytics with multiple metrics.
+    Shows advanced database query capabilities.
+    """
+    teams = Team.query.all()
+    comparison_data = []
+    
+    for team in teams:
+        # Get offensive stats
+        offensive_stats = db.session.query(
+            func.avg(PlayerGameStats.passing_yards).label('avg_passing'),
+            func.avg(PlayerGameStats.rushing_yards).label('avg_rushing'),
+            func.avg(PlayerGameStats.touchdowns).label('avg_touchdowns'),
+            func.count(PlayerGameStats.game_id).label('total_player_games')
+        ).join(Player, PlayerGameStats.player_id == Player.id)\
+         .filter(Player.team_id == team.id).first()
+        
+        # Get team record
+        home_games = Game.query.filter_by(home_team_id=team.id).all()
+        away_games = Game.query.filter_by(away_team_id=team.id).all()
+        
+        wins = (len([g for g in home_games if g.home_score and g.away_score and g.home_score > g.away_score]) +
+                len([g for g in away_games if g.home_score and g.away_score and g.away_score > g.home_score]))
+        
+        total_games = len(home_games) + len(away_games)
+        
+        comparison_data.append({
+            "team_name": team.name,
+            "home_city": team.home_city,
+            "total_games": total_games,
+            "wins": wins,
+            "losses": total_games - wins,
+            "win_percentage": round((wins / max(total_games, 1)) * 100, 1),
+            "avg_passing_per_game": round(float(offensive_stats.avg_passing or 0), 1),
+            "avg_rushing_per_game": round(float(offensive_stats.avg_rushing or 0), 1),
+            "avg_touchdowns_per_game": round(float(offensive_stats.avg_touchdowns or 0), 1),
+            "total_player_games": offensive_stats.total_player_games or 0
+        })
+    
+    # Sort by win percentage
+    comparison_data.sort(key=lambda x: x['win_percentage'], reverse=True)
+    
+    return jsonify(comparison_data)
