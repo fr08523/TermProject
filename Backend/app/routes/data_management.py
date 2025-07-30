@@ -7,7 +7,6 @@ from app.models.models import League, Team, Player, Game, PlayerGameStats
 data_mgmt_bp = Blueprint("data_management", __name__)
 
 @data_mgmt_bp.post("/load-sample-data")
-@jwt_required()
 def load_sample_data():
     """Load additional sample data to demonstrate the services functionality"""
     try:

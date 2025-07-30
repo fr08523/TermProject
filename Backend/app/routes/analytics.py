@@ -9,7 +9,6 @@ from app.models.models import (
 analytics_bp = Blueprint("analytics", __name__)
 
 @analytics_bp.get("/team-performance")
-@jwt_required()
 def team_performance():
     """
     Demonstrate complex SQL queries for team performance analytics.
@@ -69,7 +68,6 @@ def team_performance():
     return jsonify(result)
 
 @analytics_bp.get("/player-stats")
-@jwt_required()
 def player_statistics():
     """
     Complex query demonstrating JOIN operations and aggregations
@@ -223,7 +221,6 @@ def create_bulk_game_stats():
         return jsonify({'error': 'Failed to create game stats'}), 500
 
 @analytics_bp.get("/injury-report")
-@jwt_required()
 def injury_report():
     """
     Demonstrate advanced filtering and date calculations.

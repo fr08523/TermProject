@@ -166,7 +166,7 @@ def get_player_stats(player_id):
                 "fumbles_lost": getattr(stat, 'fumbles_lost', 0),
                 "completions": getattr(stat, 'completions', 0),
                 "pass_attempts": getattr(stat, 'pass_attempts', 0),
-                "completion_percentage": (getattr(stat, 'completions', 0) / max(getattr(stat, 'pass_attempts', 1), 1)) * 100 if getattr(stat, 'pass_attempts', 0) > 0 else 0
+                "completion_percentage": (getattr(stat, 'completions', 0) / max(getattr(stat, 'pass_attempts', 1), 1)) * 100 if getattr(stat, 'pass_attempts', 0) and getattr(stat, 'pass_attempts', 0) > 0 else 0
             })
             
             # Accumulate totals
@@ -341,7 +341,7 @@ def list_stats():
             "fumbles_lost": getattr(stat, 'fumbles_lost', 0),
             "completions": getattr(stat, 'completions', 0),
             "pass_attempts": getattr(stat, 'pass_attempts', 0),
-            "completion_percentage": (getattr(stat, 'completions', 0) / max(getattr(stat, 'pass_attempts', 1), 1)) * 100 if getattr(stat, 'pass_attempts', 0) > 0 else 0
+            "completion_percentage": (getattr(stat, 'completions', 0) / max(getattr(stat, 'pass_attempts', 1), 1)) * 100 if getattr(stat, 'pass_attempts', 0) and getattr(stat, 'pass_attempts', 0) > 0 else 0
         })
     
     # Sort by most recent games first unless specified otherwise
