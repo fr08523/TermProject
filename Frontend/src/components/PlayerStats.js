@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import './PlayerStats.css';
 
@@ -7,17 +7,13 @@ function PlayerStats() {
   const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [playerStats, setPlayerStats] = useState(null);
-  const [gameStats, setGameStats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchPerformed, setSearchPerformed] = useState(false);
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+
 
   const searchPlayers = async (e) => {
     e.preventDefault();
@@ -33,7 +29,6 @@ function PlayerStats() {
       setPlayers(response.data);
       setSelectedPlayer(null);
       setPlayerStats(null);
-      setGameStats([]);
       
       if (response.data.length === 0) {
         setError('No players found matching your search');
@@ -52,13 +47,9 @@ function PlayerStats() {
     setError('');
     
     try {
-      const [playerStatsRes, gameStatsRes] = await Promise.all([
-        axios.get(`${apiUrl}/api/players/${player.id}/stats`),
-        axios.get(`${apiUrl}/api/stats?player_name=${encodeURIComponent(player.name)}`)
-      ]);
+      const playerStatsRes = await axios.get(`${apiUrl}/api/players/${player.id}/stats`);
       
       setPlayerStats(playerStatsRes.data);
-      setGameStats(gameStatsRes.data);
     } catch (err) {
       console.error('Error fetching player stats:', err);
       setError('Failed to fetch player statistics. Please try again.');
@@ -72,7 +63,6 @@ function PlayerStats() {
     setPlayers([]);
     setSelectedPlayer(null);
     setPlayerStats(null);
-    setGameStats([]);
     setSearchPerformed(false);
     setError('');
   };

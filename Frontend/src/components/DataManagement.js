@@ -26,25 +26,7 @@ function DataManagement() {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [leaguesRes, teamsRes, playersRes] = await Promise.all([
-        axios.get(`${apiUrl}/api/leagues`, { headers: getAuthHeaders() }),
-        fetchTeamsWithFilter(),
-        fetchPlayersWithFilter()
-      ]);
-      
-      setLeagues(leaguesRes.data);
-    } catch (err) {
-      setError('Failed to fetch data');
-    }
-  };
-
-  const fetchTeamsWithFilter = async () => {
+  const fetchTeamsWithFilter = React.useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (teamFilter.league_id) params.append('league_id', teamFilter.league_id);
@@ -57,9 +39,9 @@ function DataManagement() {
       setError('Failed to fetch teams');
       return { data: [] };
     }
-  };
+  }, [apiUrl, teamFilter.league_id, teamFilter.name]);
 
-  const fetchPlayersWithFilter = async () => {
+  const fetchPlayersWithFilter = React.useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (playerFilter.team_id) params.append('team_id', playerFilter.team_id);
@@ -73,7 +55,25 @@ function DataManagement() {
       setError('Failed to fetch players');
       return { data: [] };
     }
-  };
+  }, [apiUrl, playerFilter.team_id, playerFilter.name, playerFilter.position]);
+
+  const fetchData = React.useCallback(async () => {
+    try {
+      const [leaguesRes] = await Promise.all([
+        axios.get(`${apiUrl}/api/leagues`, { headers: getAuthHeaders() }),
+        fetchTeamsWithFilter(),
+        fetchPlayersWithFilter()
+      ]);
+      
+      setLeagues(leaguesRes.data);
+    } catch (err) {
+      setError('Failed to fetch data');
+    }
+  }, [apiUrl, fetchPlayersWithFilter, fetchTeamsWithFilter]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleLeagueSubmit = async (e) => {
     e.preventDefault();

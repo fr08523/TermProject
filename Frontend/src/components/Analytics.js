@@ -7,7 +7,6 @@ function Analytics() {
   const [careerLeaders, setCareerLeaders] = useState(null);
   const [topPerformers, setTopPerformers] = useState(null);
   const [teamPerformance, setTeamPerformance] = useState(null);
-  const [teamComparison, setTeamComparison] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState('passing_yards');
@@ -43,16 +42,9 @@ function Analytics() {
         { headers: getAuthHeaders() }
       );
 
-      // Fetch team comparison
-      const teamComparisonRes = await axios.get(
-        `${apiUrl}/analytics/team-comparison`,
-        { headers: getAuthHeaders() }
-      );
-
       setCareerLeaders(careerLeadersRes.data);
       setTopPerformers(topPerformersRes.data);
       setTeamPerformance(teamPerformanceRes.data);
-      setTeamComparison(teamComparisonRes.data);
 
       // Also fetch basic analytics for overview
       const [leaguesRes, teamsRes, playersRes, gamesRes] = await Promise.all([
