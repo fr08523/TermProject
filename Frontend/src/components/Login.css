@@ -52,10 +52,21 @@
   font-size: 18px;
   width: 100%;
   transition: background-color 0.3s ease;
+  margin-bottom: 10px;
 }
 
 .login-form button:hover {
   background-color: #0056b3;
+}
+
+.login-form button.toggle-mode {
+  background-color: #6c757d;
+  font-size: 14px;
+  padding: 10px 20px;
+}
+
+.login-form button.toggle-mode:hover {
+  background-color: #545b62;
 }
 
 .error-message {

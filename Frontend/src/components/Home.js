@@ -9,6 +9,12 @@ function Home() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
 
+  // Get JWT token from localStorage
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -18,15 +24,23 @@ function Home() {
       const params = new URLSearchParams();
       if (teamName) params.append("team", teamName);
       if (week) params.append("week", week);
-    console.log(params.toString())
+      
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       const response = await axios.get(
-        `http://127.0.0.1:5000/api/games?${params.toString()}`, {
-            });
+        `${apiUrl}/api/games?${params.toString()}`,
+        { headers: getAuthHeaders() }
+      );
       
       setResults(response.data);
     } catch (err) {
       console.error("Error:", err.toString());
-      setError("Failed to fetch data. Please try again.");
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please log in again.");
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      } else {
+        setError("Failed to fetch data. Please try again.");
+      }
     }
   };
 
