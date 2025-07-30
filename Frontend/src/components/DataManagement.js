@@ -14,6 +14,10 @@ function DataManagement() {
   const [leagueForm, setLeagueForm] = useState({ name: '', level: '' });
   const [teamForm, setTeamForm] = useState({ name: '', home_city: '', league_id: '' });
   const [playerForm, setPlayerForm] = useState({ name: '', position: '', team_id: '' });
+  
+  // Filter states
+  const [teamFilter, setTeamFilter] = useState({ league_id: '', name: '' });
+  const [playerFilter, setPlayerFilter] = useState({ team_id: '', name: '', position: '' });
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
@@ -30,15 +34,44 @@ function DataManagement() {
     try {
       const [leaguesRes, teamsRes, playersRes] = await Promise.all([
         axios.get(`${apiUrl}/api/leagues`, { headers: getAuthHeaders() }),
-        axios.get(`${apiUrl}/api/teams`, { headers: getAuthHeaders() }),
-        axios.get(`${apiUrl}/api/players`, { headers: getAuthHeaders() })
+        fetchTeamsWithFilter(),
+        fetchPlayersWithFilter()
       ]);
       
       setLeagues(leaguesRes.data);
-      setTeams(teamsRes.data);
-      setPlayers(playersRes.data);
     } catch (err) {
       setError('Failed to fetch data');
+    }
+  };
+
+  const fetchTeamsWithFilter = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (teamFilter.league_id) params.append('league_id', teamFilter.league_id);
+      if (teamFilter.name) params.append('name', teamFilter.name);
+      
+      const response = await axios.get(`${apiUrl}/api/teams?${params.toString()}`, { headers: getAuthHeaders() });
+      setTeams(response.data);
+      return response;
+    } catch (err) {
+      setError('Failed to fetch teams');
+      return { data: [] };
+    }
+  };
+
+  const fetchPlayersWithFilter = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (playerFilter.team_id) params.append('team_id', playerFilter.team_id);
+      if (playerFilter.name) params.append('name', playerFilter.name);
+      if (playerFilter.position) params.append('position', playerFilter.position);
+      
+      const response = await axios.get(`${apiUrl}/api/players?${params.toString()}`, { headers: getAuthHeaders() });
+      setPlayers(response.data);
+      return response;
+    } catch (err) {
+      setError('Failed to fetch players');
+      return { data: [] };
     }
   };
 
@@ -146,6 +179,29 @@ function DataManagement() {
 
       {activeTab === 'teams' && (
         <div className="tab-content">
+          <div className="filter-section">
+            <h3>Filter Teams</h3>
+            <div className="filter-form">
+              <select
+                value={teamFilter.league_id}
+                onChange={(e) => setTeamFilter({...teamFilter, league_id: e.target.value})}
+              >
+                <option value="">All Leagues</option>
+                {leagues.map(league => (
+                  <option key={league.id} value={league.id}>{league.name}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Filter by team name"
+                value={teamFilter.name}
+                onChange={(e) => setTeamFilter({...teamFilter, name: e.target.value})}
+              />
+              <button onClick={fetchTeamsWithFilter}>Apply Filters</button>
+              <button onClick={() => {setTeamFilter({league_id: '', name: ''}); fetchTeamsWithFilter();}}>Clear</button>
+            </div>
+          </div>
+          
           <div className="form-section">
             <h3>Create New Team</h3>
             <form onSubmit={handleTeamSubmit}>
@@ -178,20 +234,53 @@ function DataManagement() {
           </div>
           
           <div className="list-section">
-            <h3>Existing Teams</h3>
-            <ul>
+            <h3>Teams ({teams.length} found)</h3>
+            <div className="teams-grid">
               {teams.map(team => (
-                <li key={team.id}>
-                  {team.name} - League ID: {team.league_id}
-                </li>
+                <div key={team.id} className="team-card">
+                  <h4>{team.name}</h4>
+                  <p><strong>City:</strong> {team.home_city}</p>
+                  <p><strong>League:</strong> {team.league_name}</p>
+                  {team.head_coach && <p><strong>Coach:</strong> {team.head_coach}</p>}
+                  {team.stadium && <p><strong>Stadium:</strong> {team.stadium}</p>}
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       )}
 
       {activeTab === 'players' && (
         <div className="tab-content">
+          <div className="filter-section">
+            <h3>Filter Players</h3>
+            <div className="filter-form">
+              <select
+                value={playerFilter.team_id}
+                onChange={(e) => setPlayerFilter({...playerFilter, team_id: e.target.value})}
+              >
+                <option value="">All Teams</option>
+                {teams.map(team => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Filter by player name"
+                value={playerFilter.name}
+                onChange={(e) => setPlayerFilter({...playerFilter, name: e.target.value})}
+              />
+              <input
+                type="text"
+                placeholder="Filter by position"
+                value={playerFilter.position}
+                onChange={(e) => setPlayerFilter({...playerFilter, position: e.target.value})}
+              />
+              <button onClick={fetchPlayersWithFilter}>Apply Filters</button>
+              <button onClick={() => {setPlayerFilter({team_id: '', name: '', position: ''}); fetchPlayersWithFilter();}}>Clear</button>
+            </div>
+          </div>
+          
           <div className="form-section">
             <h3>Create New Player</h3>
             <form onSubmit={handlePlayerSubmit}>
@@ -224,14 +313,29 @@ function DataManagement() {
           </div>
           
           <div className="list-section">
-            <h3>Existing Players</h3>
-            <ul>
+            <h3>Players ({players.length} found)</h3>
+            <div className="players-grid">
               {players.map(player => (
-                <li key={player.id}>
-                  {player.name} ({player.position}) - Team ID: {player.team_id}
-                </li>
+                <div key={player.id} className="player-card">
+                  <h4>{player.name}</h4>
+                  <p><strong>Position:</strong> {player.position}</p>
+                  <p><strong>Team:</strong> {player.team_name}</p>
+                  <p><strong>League:</strong> {player.league_name}</p>
+                  <div className="career-stats-summary">
+                    {(player.career_passing_yards > 0 || player.career_rushing_yards > 0 || 
+                      player.career_receiving_yards > 0 || player.career_touchdowns > 0) && (
+                      <div>
+                        <strong>Career Stats:</strong>
+                        {player.career_passing_yards > 0 && <span>Pass: {player.career_passing_yards.toLocaleString()}</span>}
+                        {player.career_rushing_yards > 0 && <span>Rush: {player.career_rushing_yards.toLocaleString()}</span>}
+                        {player.career_receiving_yards > 0 && <span>Rec: {player.career_receiving_yards.toLocaleString()}</span>}
+                        {player.career_touchdowns > 0 && <span>TDs: {player.career_touchdowns}</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       )}
