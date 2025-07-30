@@ -4,6 +4,7 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import DataManagement from "./components/DataManagement";
 import Analytics from "./components/Analytics";
+import PlayerStats from "./components/PlayerStats";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -28,6 +29,7 @@ function App() {
             {isAuthenticated && (
               <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <Link to="/home" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+                <Link to="/player-stats" style={{ color: 'white', textDecoration: 'none' }}>Player Stats</Link>
                 <Link to="/manage" style={{ color: 'white', textDecoration: 'none' }}>Data Management</Link>
                 <Link to="/analytics" style={{ color: 'white', textDecoration: 'none' }}>Analytics</Link>
                 <button 
@@ -52,6 +54,10 @@ function App() {
           <Route
             path="/home"
             element={isAuthenticated ? <Home /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/player-stats"
+            element={isAuthenticated ? <PlayerStats /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/manage"
