@@ -92,9 +92,9 @@ def player_statistics():
         func.sum(PlayerGameStats.touchdowns).label('total_touchdowns'),
         func.avg(PlayerGameStats.passing_yards).label('avg_passing_yards'),
         func.count(Injury.id).label('injury_count')
-    ).join(Team).left_outer_join(
+    ).join(Team).outerjoin(
         PlayerGameStats, PlayerGameStats.player_id == Player.id
-    ).left_outer_join(
+    ).outerjoin(
         Injury, Injury.player_id == Player.id
     )
     
@@ -247,7 +247,7 @@ def injury_report():
             (Injury.end_date.is_(None), func.current_date() - Injury.start_date),
             else_=Injury.end_date - Injury.start_date
         ).label('duration_days')
-    ).join(Player).join(Team)
+    ).select_from(Injury).join(Player).join(Team, Player.team_id == Team.id)
     
     # Apply filters with proper SQL injection prevention
     if team_id:
@@ -285,6 +285,10 @@ def top_performers():
     Advanced analytics query for top performing players.
     Demonstrates complex aggregations and rankings.
     """
+    # Get sort parameter (default to passing)
+    sort_by = request.args.get('sort_by', 'passing')
+    limit = request.args.get('limit', 5, type=int)
+    
     # Get top passing leaders
     passing_leaders = db.session.query(
         Player.name,
@@ -298,7 +302,7 @@ def top_performers():
      .filter(PlayerGameStats.passing_yards > 0)\
      .group_by(Player.id, Player.name, Player.position, Team.name)\
      .order_by(func.sum(PlayerGameStats.passing_yards).desc())\
-     .limit(5).all()
+     .limit(limit).all()
     
     # Get top rushing leaders
     rushing_leaders = db.session.query(
@@ -313,7 +317,22 @@ def top_performers():
      .filter(PlayerGameStats.rushing_yards > 0)\
      .group_by(Player.id, Player.name, Player.position, Team.name)\
      .order_by(func.sum(PlayerGameStats.rushing_yards).desc())\
-     .limit(5).all()
+     .limit(limit).all()
+    
+    # Get top receiving leaders
+    receiving_leaders = db.session.query(
+        Player.name,
+        Player.position,
+        Team.name.label('team_name'),
+        func.sum(PlayerGameStats.receiving_yards).label('total_receiving'),
+        func.count(PlayerGameStats.game_id).label('games_played'),
+        func.avg(PlayerGameStats.receiving_yards).label('avg_receiving')
+    ).join(Team, Player.team_id == Team.id)\
+     .join(PlayerGameStats, Player.id == PlayerGameStats.player_id)\
+     .filter(PlayerGameStats.receiving_yards > 0)\
+     .group_by(Player.id, Player.name, Player.position, Team.name)\
+     .order_by(func.sum(PlayerGameStats.receiving_yards).desc())\
+     .limit(limit).all()
     
     return jsonify({
         "passing_leaders": [
@@ -337,8 +356,87 @@ def top_performers():
                 "avg_per_game": round(float(row.avg_rushing), 1)
             }
             for row in rushing_leaders
+        ],
+        "receiving_leaders": [
+            {
+                "name": row.name,
+                "position": row.position,
+                "team": row.team_name,
+                "total_yards": int(row.total_receiving),
+                "games_played": row.games_played,
+                "avg_per_game": round(float(row.avg_receiving), 1)
+            }
+            for row in receiving_leaders
         ]
     })
+
+@analytics_bp.get("/career-leaders")
+def career_leaders():
+    """
+    Get career leaders sorted by different statistical categories.
+    Uses the career stats stored in the Player model.
+    """
+    sort_by = request.args.get('sort_by', 'passing_yards')
+    limit = request.args.get('limit', 10, type=int)
+    position = request.args.get('position', type=str)
+    
+    # Map sort parameters to Player model fields
+    sort_field_map = {
+        'passing_yards': Player.career_passing_yards,
+        'rushing_yards': Player.career_rushing_yards,
+        'receiving_yards': Player.career_receiving_yards,
+        'touchdowns': Player.career_touchdowns,
+        'tackles': Player.career_tackles,
+        'sacks': Player.career_sacks,
+        'interceptions': Player.career_interceptions
+    }
+    
+    if sort_by not in sort_field_map:
+        return jsonify({'error': f'Invalid sort_by parameter. Valid options: {list(sort_field_map.keys())}'}), 400
+    
+    # Build query
+    query = db.session.query(
+        Player.id,
+        Player.name,
+        Player.position,
+        Team.name.label('team_name'),
+        Player.career_passing_yards,
+        Player.career_rushing_yards,
+        Player.career_receiving_yards,
+        Player.career_touchdowns,
+        Player.career_tackles,
+        Player.career_sacks,
+        Player.career_interceptions
+    ).join(Team, Player.team_id == Team.id)
+    
+    # Apply position filter if provided
+    if position:
+        query = query.filter(Player.position.like(f'%{position}%'))
+    
+    # Apply sorting and limit
+    sort_field = sort_field_map[sort_by]
+    query = query.filter(sort_field > 0).order_by(sort_field.desc()).limit(limit)
+    
+    results = query.all()
+    
+    return jsonify([
+        {
+            'player_id': row.id,
+            'name': row.name,
+            'position': row.position,
+            'team': row.team_name,
+            'career_passing_yards': row.career_passing_yards,
+            'career_rushing_yards': row.career_rushing_yards,
+            'career_receiving_yards': row.career_receiving_yards,
+            'career_touchdowns': row.career_touchdowns,
+            'career_tackles': row.career_tackles,
+            'career_sacks': row.career_sacks,
+            'career_interceptions': row.career_interceptions,
+            'sorted_by': sort_by,
+            'sorted_value': getattr(row, f'career_{sort_by}') if sort_by != 'touchdowns' else row.career_touchdowns
+        }
+        for row in results
+    ])
 
 @analytics_bp.get("/team-comparison")
 def team_comparison():
