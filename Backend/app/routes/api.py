@@ -348,6 +348,18 @@ def create_stats():
         extra_points_made = d.get("extra_points_made", 0),
     )
     db.session.add(s)
+    
+    # Update player career stats
+    player = Player.query.get(s.player_id)
+    if player:
+        player.career_passing_yards += s.passing_yards
+        player.career_rushing_yards += s.rushing_yards
+        player.career_receiving_yards += s.receiving_yards
+        player.career_tackles += s.tackles
+        player.career_sacks += s.sacks
+        player.career_interceptions += s.interceptions
+        player.career_touchdowns += s.touchdowns
+    
     db.session.commit()
     # composite PK → return both keys
     return jsonify(
