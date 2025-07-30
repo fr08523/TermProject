@@ -71,6 +71,18 @@ def create_player():
 # Game endpoints
 @api_bp.get("/games")
 def list_games():
+    team_name = request.args.get("team")
+    week = request.args.get("week")
+
+    query = Game.query
+
+    if team_name:
+        query = query.join(Team, (Game.home_team_id == Team.id) | (Game.away_team_id == Team.id)).filter(Team.name.ilike(f"%{team_name}%"))
+    if week:
+        query = query.filter_by(week=week)
+
+    games = query.all()
+
     return jsonify([
         {
             "id": g.id,
@@ -85,7 +97,7 @@ def list_games():
             "away_score": g.away_score,
             "attendance": g.attendance,
         }
-        for g in Game.query.all()
+        for g in games
     ])
 
 @api_bp.post("/games")

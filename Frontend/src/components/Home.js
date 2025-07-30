@@ -20,7 +20,7 @@ function Home() {
       if (week) params.append("week", week);
     console.log(params.toString())
       const response = await axios.get(
-        `http://127.0.0.1:5000/api/sports?${params.toString()}`, {
+        `http://127.0.0.1:5000/api/games?${params.toString()}`, {
             });
       
       setResults(response.data);
