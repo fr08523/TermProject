@@ -74,8 +74,16 @@ class PlayerGameStats(db.Model):
     sacks             = db.Column(db.Integer, default=0)
     interceptions     = db.Column(db.Integer, default=0)
     touchdowns        = db.Column(db.Integer, default=0)
+    passing_touchdowns = db.Column(db.Integer, default=0)
+    rushing_touchdowns = db.Column(db.Integer, default=0)
+    receiving_touchdowns = db.Column(db.Integer, default=0)
     field_goals_made  = db.Column(db.Integer, default=0)
+    field_goals_attempted = db.Column(db.Integer, default=0)
     extra_points_made = db.Column(db.Integer, default=0)
+    fumbles           = db.Column(db.Integer, default=0)
+    fumbles_lost      = db.Column(db.Integer, default=0)
+    completions       = db.Column(db.Integer, default=0)
+    pass_attempts     = db.Column(db.Integer, default=0)
 
 class Injury(db.Model):
     id          = db.Column(db.Integer, primary_key=True)

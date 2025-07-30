@@ -295,6 +295,17 @@
   color: #2c3e50;
   position: sticky;
   top: 0;
+  user-select: none;
+}
+
+.game-logs-table th[style*="cursor: pointer"] {
+  background: #e3f2fd;
+  transition: background-color 0.2s ease;
+}
+
+.game-logs-table th[style*="cursor: pointer"]:hover {
+  background: #bbdefb;
+  color: #1976d2;
 }
 
 .game-logs-table tr:hover {

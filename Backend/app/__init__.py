@@ -22,10 +22,12 @@ def create_app():
     from app.routes.auth import auth_bp
     from app.routes.api  import api_bp
     from app.routes.analytics import analytics_bp
+    from app.routes.data_management import data_mgmt_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(api_bp,  url_prefix="/api")
     app.register_blueprint(analytics_bp, url_prefix="/analytics")
+    app.register_blueprint(data_mgmt_bp, url_prefix="/data-management")
 
     return app
 

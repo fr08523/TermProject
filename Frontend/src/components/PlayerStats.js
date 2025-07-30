@@ -11,12 +11,54 @@ function PlayerStats() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedData = (data) => {
+    if (!sortConfig.key) return data;
+    
+    const sortedData = [...data].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+      
+      // Handle numeric values
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+      
+      // Handle string values
+      const aStr = String(aValue || '').toLowerCase();
+      const bStr = String(bValue || '').toLowerCase();
+      
+      if (sortConfig.direction === 'asc') {
+        return aStr.localeCompare(bStr);
+      } else {
+        return bStr.localeCompare(aStr);
+      }
+    });
+    
+    return sortedData;
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return ' ↕️'; // Both arrows when not sorted
+    }
+    return sortConfig.direction === 'asc' ? ' ⬆️' : ' ⬇️';
   };
 
   const searchPlayers = async (e) => {
@@ -205,24 +247,52 @@ function PlayerStats() {
 
           {playerStats.game_logs && playerStats.game_logs.length > 0 && (
             <div className="game-logs-section">
-              <h4>Game-by-Game Performance</h4>
+              <h4>Game-by-Game Performance (Click headers to sort)</h4>
               <div className="game-logs-table">
                 <table>
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Week</th>
-                      <th>Opponent</th>
+                      <th onClick={() => handleSort('game_date')} style={{cursor: 'pointer'}}>
+                        Date{getSortIcon('game_date')}
+                      </th>
+                      <th onClick={() => handleSort('week')} style={{cursor: 'pointer'}}>
+                        Week{getSortIcon('week')}
+                      </th>
+                      <th onClick={() => handleSort('opponent')} style={{cursor: 'pointer'}}>
+                        Opponent{getSortIcon('opponent')}
+                      </th>
                       <th>Score</th>
-                      <th>Pass Yds</th>
-                      <th>Rush Yds</th>
-                      <th>Rec Yds</th>
-                      <th>TDs</th>
-                      <th>INT</th>
+                      <th onClick={() => handleSort('passing_yards')} style={{cursor: 'pointer'}}>
+                        Pass Yds{getSortIcon('passing_yards')}
+                      </th>
+                      <th onClick={() => handleSort('rushing_yards')} style={{cursor: 'pointer'}}>
+                        Rush Yds{getSortIcon('rushing_yards')}
+                      </th>
+                      <th onClick={() => handleSort('receiving_yards')} style={{cursor: 'pointer'}}>
+                        Rec Yds{getSortIcon('receiving_yards')}
+                      </th>
+                      <th onClick={() => handleSort('touchdowns')} style={{cursor: 'pointer'}}>
+                        Total TDs{getSortIcon('touchdowns')}
+                      </th>
+                      <th onClick={() => handleSort('passing_touchdowns')} style={{cursor: 'pointer'}}>
+                        Pass TDs{getSortIcon('passing_touchdowns')}
+                      </th>
+                      <th onClick={() => handleSort('rushing_touchdowns')} style={{cursor: 'pointer'}}>
+                        Rush TDs{getSortIcon('rushing_touchdowns')}
+                      </th>
+                      <th onClick={() => handleSort('interceptions')} style={{cursor: 'pointer'}}>
+                        INT{getSortIcon('interceptions')}
+                      </th>
+                      <th onClick={() => handleSort('field_goals_made')} style={{cursor: 'pointer'}}>
+                        FG{getSortIcon('field_goals_made')}
+                      </th>
+                      <th onClick={() => handleSort('sacks')} style={{cursor: 'pointer'}}>
+                        Sacks{getSortIcon('sacks')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {playerStats.game_logs.map((game, index) => (
+                    {getSortedData(playerStats.game_logs).map((game, index) => (
                       <tr key={`${game.game_id}-${index}`}>
                         <td>{game.game_date ? new Date(game.game_date).toLocaleDateString() : 'N/A'}</td>
                         <td>{game.week}</td>
@@ -232,7 +302,11 @@ function PlayerStats() {
                         <td>{game.rushing_yards}</td>
                         <td>{game.receiving_yards}</td>
                         <td>{game.touchdowns}</td>
+                        <td>{game.passing_touchdowns || 0}</td>
+                        <td>{game.rushing_touchdowns || 0}</td>
                         <td>{game.interceptions}</td>
+                        <td>{game.field_goals_made || 0}</td>
+                        <td>{game.sacks || 0}</td>
                       </tr>
                     ))}
                   </tbody>

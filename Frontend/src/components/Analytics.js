@@ -8,10 +8,13 @@ function Analytics() {
   const [topPerformers, setTopPerformers] = useState(null);
   const [teamPerformance, setTeamPerformance] = useState(null);
   const [teamComparison, setTeamComparison] = useState(null);
+  const [gameStats, setGameStats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState('passing_yards');
   const [selectedPosition, setSelectedPosition] = useState('');
+  const [statsSort, setStatsSort] = useState({ field: 'passing_yards', order: 'desc' });
+  const [showAllStats, setShowAllStats] = useState(false);
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
@@ -55,11 +58,12 @@ function Analytics() {
       setTeamComparison(teamComparisonRes.data);
 
       // Also fetch basic analytics for overview
-      const [leaguesRes, teamsRes, playersRes, gamesRes] = await Promise.all([
+      const [leaguesRes, teamsRes, playersRes, gamesRes, gameStatsRes] = await Promise.all([
         axios.get(`${apiUrl}/api/leagues`, { headers: getAuthHeaders() }),
         axios.get(`${apiUrl}/api/teams`, { headers: getAuthHeaders() }),
         axios.get(`${apiUrl}/api/players`, { headers: getAuthHeaders() }),
-        axios.get(`${apiUrl}/api/games`, { headers: getAuthHeaders() })
+        axios.get(`${apiUrl}/api/games`, { headers: getAuthHeaders() }),
+        axios.get(`${apiUrl}/api/stats?sort_by=${statsSort.field}&sort_order=${statsSort.order}`, { headers: getAuthHeaders() })
       ]);
 
       setAnalyticsData({
@@ -68,6 +72,8 @@ function Analytics() {
         totalTeams: teamsRes.data.length,
         totalLeagues: leaguesRes.data.length
       });
+
+      setGameStats(gameStatsRes.data);
       
     } catch (err) {
       console.error('Error fetching analytics:', err);
@@ -75,7 +81,7 @@ function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, sortBy, selectedPosition]);
+  }, [apiUrl, sortBy, selectedPosition, statsSort]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -87,6 +93,18 @@ function Analytics() {
 
   const handlePositionFilter = (position) => {
     setSelectedPosition(position);
+  };
+
+  const handleStatsSort = (field) => {
+    setStatsSort(prev => ({
+      field: field,
+      order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const getSortIcon = (field) => {
+    if (statsSort.field !== field) return ' ↕️';
+    return statsSort.order === 'asc' ? ' ⬆️' : ' ⬇️';
   };
 
   if (loading) {
@@ -324,6 +342,103 @@ function Analytics() {
           </div>
         </div>
       )}
+
+      {/* Comprehensive Game Statistics Table */}
+      <div className="game-stats-section">
+        <h3>Comprehensive Game Statistics (Sortable)</h3>
+        <div className="stats-controls">
+          <button 
+            onClick={() => setShowAllStats(!showAllStats)}
+            className="toggle-btn"
+          >
+            {showAllStats ? 'Show Top 20' : 'Show All Games'}
+          </button>
+          <p className="help-text">Click column headers to sort. Current sort: {statsSort.field.replace('_', ' ')} ({statsSort.order})</p>
+        </div>
+        
+        {gameStats && gameStats.length > 0 ? (
+          <div className="comprehensive-table-container">
+            <table className="comprehensive-stats-table">
+              <thead>
+                <tr>
+                  <th onClick={() => handleStatsSort('player_name')} style={{cursor: 'pointer'}}>
+                    Player{getSortIcon('player_name')}
+                  </th>
+                  <th onClick={() => handleStatsSort('player_position')} style={{cursor: 'pointer'}}>
+                    Pos{getSortIcon('player_position')}
+                  </th>
+                  <th onClick={() => handleStatsSort('team_name')} style={{cursor: 'pointer'}}>
+                    Team{getSortIcon('team_name')}
+                  </th>
+                  <th onClick={() => handleStatsSort('week')} style={{cursor: 'pointer'}}>
+                    Week{getSortIcon('week')}
+                  </th>
+                  <th onClick={() => handleStatsSort('passing_yards')} style={{cursor: 'pointer'}}>
+                    Pass Yds{getSortIcon('passing_yards')}
+                  </th>
+                  <th onClick={() => handleStatsSort('rushing_yards')} style={{cursor: 'pointer'}}>
+                    Rush Yds{getSortIcon('rushing_yards')}
+                  </th>
+                  <th onClick={() => handleStatsSort('receiving_yards')} style={{cursor: 'pointer'}}>
+                    Rec Yds{getSortIcon('receiving_yards')}
+                  </th>
+                  <th onClick={() => handleStatsSort('touchdowns')} style={{cursor: 'pointer'}}>
+                    Total TDs{getSortIcon('touchdowns')}
+                  </th>
+                  <th onClick={() => handleStatsSort('passing_touchdowns')} style={{cursor: 'pointer'}}>
+                    Pass TDs{getSortIcon('passing_touchdowns')}
+                  </th>
+                  <th onClick={() => handleStatsSort('rushing_touchdowns')} style={{cursor: 'pointer'}}>
+                    Rush TDs{getSortIcon('rushing_touchdowns')}
+                  </th>
+                  <th onClick={() => handleStatsSort('receiving_touchdowns')} style={{cursor: 'pointer'}}>
+                    Rec TDs{getSortIcon('receiving_touchdowns')}
+                  </th>
+                  <th onClick={() => handleStatsSort('interceptions')} style={{cursor: 'pointer'}}>
+                    INT{getSortIcon('interceptions')}
+                  </th>
+                  <th onClick={() => handleStatsSort('sacks')} style={{cursor: 'pointer'}}>
+                    Sacks{getSortIcon('sacks')}
+                  </th>
+                  <th onClick={() => handleStatsSort('tackles')} style={{cursor: 'pointer'}}>
+                    Tackles{getSortIcon('tackles')}
+                  </th>
+                  <th onClick={() => handleStatsSort('field_goals_made')} style={{cursor: 'pointer'}}>
+                    FG{getSortIcon('field_goals_made')}
+                  </th>
+                  <th onClick={() => handleStatsSort('completion_percentage')} style={{cursor: 'pointer'}}>
+                    Comp %{getSortIcon('completion_percentage')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {(showAllStats ? gameStats : gameStats.slice(0, 20)).map((stat, index) => (
+                  <tr key={`${stat.player_id}-${stat.game_id}`}>
+                    <td>{stat.player_name}</td>
+                    <td>{stat.player_position}</td>
+                    <td>{stat.team_name}</td>
+                    <td>{stat.week}</td>
+                    <td>{stat.passing_yards}</td>
+                    <td>{stat.rushing_yards}</td>
+                    <td>{stat.receiving_yards}</td>
+                    <td>{stat.touchdowns}</td>
+                    <td>{stat.passing_touchdowns}</td>
+                    <td>{stat.rushing_touchdowns}</td>
+                    <td>{stat.receiving_touchdowns}</td>
+                    <td>{stat.interceptions}</td>
+                    <td>{stat.sacks}</td>
+                    <td>{stat.tackles}</td>
+                    <td>{stat.field_goals_made}</td>
+                    <td>{stat.completion_percentage ? `${stat.completion_percentage.toFixed(1)}%` : 'N/A'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>No game statistics available</p>
+        )}
+      </div>
 
       <div className="refresh-section">
         <button onClick={fetchAnalytics} className="refresh-btn">

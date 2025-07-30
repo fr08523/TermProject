@@ -241,3 +241,111 @@ tbody tr:nth-child(even):hover {
     font-size: 24px;
   }
 }
+
+/* Comprehensive Game Statistics Table */
+.game-stats-section {
+  margin-bottom: 40px;
+}
+
+.stats-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.toggle-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-btn:hover {
+  background: #218838;
+}
+
+.help-text {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  font-style: italic;
+}
+
+.comprehensive-table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.comprehensive-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.comprehensive-stats-table th {
+  background: #f8f9fa;
+  color: #2c3e50;
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.comprehensive-stats-table th[style*="cursor: pointer"]:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.comprehensive-stats-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 13px;
+  color: #495057;
+}
+
+.comprehensive-stats-table tr:hover {
+  background: #f8f9fa;
+}
+
+.comprehensive-stats-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.comprehensive-stats-table tr:nth-child(even):hover {
+  background: #f0f0f0;
+}
+
+/* Responsive design for comprehensive table */
+@media (max-width: 768px) {
+  .stats-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .help-text {
+    text-align: center;
+  }
+  
+  .comprehensive-stats-table th,
+  .comprehensive-stats-table td {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+}

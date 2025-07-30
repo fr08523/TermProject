@@ -154,9 +154,19 @@ def get_player_stats(player_id):
                 "rushing_yards": stat.rushing_yards,
                 "receiving_yards": stat.receiving_yards,
                 "touchdowns": stat.touchdowns,
+                "passing_touchdowns": getattr(stat, 'passing_touchdowns', 0),
+                "rushing_touchdowns": getattr(stat, 'rushing_touchdowns', 0),
+                "receiving_touchdowns": getattr(stat, 'receiving_touchdowns', 0),
                 "tackles": stat.tackles,
                 "sacks": stat.sacks,
-                "interceptions": stat.interceptions
+                "interceptions": stat.interceptions,
+                "field_goals_made": stat.field_goals_made,
+                "field_goals_attempted": getattr(stat, 'field_goals_attempted', 0),
+                "fumbles": getattr(stat, 'fumbles', 0),
+                "fumbles_lost": getattr(stat, 'fumbles_lost', 0),
+                "completions": getattr(stat, 'completions', 0),
+                "pass_attempts": getattr(stat, 'pass_attempts', 0),
+                "completion_percentage": (getattr(stat, 'completions', 0) / max(getattr(stat, 'pass_attempts', 1), 1)) * 100 if getattr(stat, 'pass_attempts', 0) > 0 else 0
             })
             
             # Accumulate totals
@@ -321,12 +331,43 @@ def list_stats():
             "sacks": stat.sacks,
             "interceptions": stat.interceptions,
             "touchdowns": stat.touchdowns,
+            "passing_touchdowns": getattr(stat, 'passing_touchdowns', 0),
+            "rushing_touchdowns": getattr(stat, 'rushing_touchdowns', 0),
+            "receiving_touchdowns": getattr(stat, 'receiving_touchdowns', 0),
             "field_goals_made": stat.field_goals_made,
+            "field_goals_attempted": getattr(stat, 'field_goals_attempted', 0),
             "extra_points_made": stat.extra_points_made,
+            "fumbles": getattr(stat, 'fumbles', 0),
+            "fumbles_lost": getattr(stat, 'fumbles_lost', 0),
+            "completions": getattr(stat, 'completions', 0),
+            "pass_attempts": getattr(stat, 'pass_attempts', 0),
+            "completion_percentage": (getattr(stat, 'completions', 0) / max(getattr(stat, 'pass_attempts', 1), 1)) * 100 if getattr(stat, 'pass_attempts', 0) > 0 else 0
         })
     
-    # Sort by most recent games first
-    result.sort(key=lambda x: x['game_date'] or '', reverse=True)
+    # Sort by most recent games first unless specified otherwise
+    sort_by = request.args.get('sort_by', 'game_date')
+    sort_order = request.args.get('sort_order', 'desc')
+    
+    # Define sortable fields
+    sortable_fields = {
+        'game_date': lambda x: x['game_date'] or '',
+        'passing_yards': lambda x: x['passing_yards'],
+        'rushing_yards': lambda x: x['rushing_yards'],
+        'receiving_yards': lambda x: x['receiving_yards'],
+        'touchdowns': lambda x: x['touchdowns'],
+        'tackles': lambda x: x['tackles'],
+        'sacks': lambda x: x['sacks'],
+        'interceptions': lambda x: x['interceptions'],
+        'field_goals_made': lambda x: x['field_goals_made'],
+        'player_name': lambda x: x['player_name'],
+        'week': lambda x: x['week']
+    }
+    
+    if sort_by in sortable_fields:
+        reverse_sort = sort_order.lower() == 'desc'
+        result.sort(key=sortable_fields[sort_by], reverse=reverse_sort)
+    else:
+        result.sort(key=lambda x: x['game_date'] or '', reverse=True)
     
     return jsonify(result)
 
