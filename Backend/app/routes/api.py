@@ -74,31 +74,41 @@ def list_games():
     team_name = request.args.get("team")
     week = request.args.get("week")
 
+    # Start with basic Game query
     query = Game.query
 
     if team_name:
+        # Filter by team name using subquery approach
         query = query.join(Team, (Game.home_team_id == Team.id) | (Game.away_team_id == Team.id)).filter(Team.name.ilike(f"%{team_name}%"))
     if week:
         query = query.filter_by(week=week)
 
     games = query.all()
 
-    return jsonify([
-        {
+    # Build response with team names included
+    games_data = []
+    for g in games:
+        # Get team names by querying the Team table
+        home_team = Team.query.get(g.home_team_id)
+        away_team = Team.query.get(g.away_team_id)
+        
+        games_data.append({
             "id": g.id,
             "league_id": g.league_id,
             "season_year": g.season_year,
             "week": g.week,
             "home_team_id": g.home_team_id,
             "away_team_id": g.away_team_id,
+            "home_team_name": home_team.name if home_team else "Unknown",
+            "away_team_name": away_team.name if away_team else "Unknown",
             "venue": g.venue,
-            "game_date": g.game_date.isoformat(),
+            "game_date": g.game_date.isoformat() if g.game_date else None,
             "home_score": g.home_score,
             "away_score": g.away_score,
             "attendance": g.attendance,
-        }
-        for g in games
-    ])
+        })
+
+    return jsonify(games_data)
 
 @api_bp.post("/games")
 @jwt_required()
