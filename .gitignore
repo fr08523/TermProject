@@ -3,6 +3,9 @@ Frontend/node_modules/
 Frontend/.pnp
 Frontend/.pnp.js
 
+# Build cache
+Frontend/node_modules/.cache/
+
 # Testing
 Frontend/coverage/
 
