@@ -62,3 +62,6 @@ Backend/*.egg
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Cache files
+Frontend/node_modules/.cache/
