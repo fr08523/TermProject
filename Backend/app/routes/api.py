@@ -111,12 +111,22 @@ def list_players():
             "team_name": team.name if team else "Unknown",
             "league_name": league.name if league else "Unknown",
             "career_passing_yards": player.career_passing_yards,
+            "career_passing_completions": player.career_passing_completions,
+            "career_passing_attempts": player.career_passing_attempts,
+            "career_passing_touchdowns": player.career_passing_touchdowns,
             "career_rushing_yards": player.career_rushing_yards,
+            "career_rushing_attempts": player.career_rushing_attempts,
+            "career_rushing_touchdowns": player.career_rushing_touchdowns,
             "career_receiving_yards": player.career_receiving_yards,
+            "career_receptions": player.career_receptions,
+            "career_receiving_touchdowns": player.career_receiving_touchdowns,
             "career_tackles": player.career_tackles,
             "career_sacks": player.career_sacks,
             "career_interceptions": player.career_interceptions,
-            "career_touchdowns": player.career_touchdowns
+            "career_passes_defensed": player.career_passes_defensed,
+            "career_touchdowns": player.career_touchdowns,
+            "career_fumbles": player.career_fumbles,
+            "career_fumbles_lost": player.career_fumbles_lost
         })
     
     return jsonify(result)
@@ -151,12 +161,27 @@ def get_player_stats(player_id):
                 "home_score": game.home_score,
                 "away_score": game.away_score,
                 "passing_yards": stat.passing_yards,
+                "passing_completions": stat.passing_completions,
+                "passing_attempts": stat.passing_attempts,
+                "passing_touchdowns": stat.passing_touchdowns,
                 "rushing_yards": stat.rushing_yards,
+                "rushing_attempts": stat.rushing_attempts,
+                "rushing_touchdowns": stat.rushing_touchdowns,
                 "receiving_yards": stat.receiving_yards,
+                "receptions": stat.receptions,
+                "receiving_targets": stat.receiving_targets,
+                "receiving_touchdowns": stat.receiving_touchdowns,
                 "touchdowns": stat.touchdowns,
                 "tackles": stat.tackles,
                 "sacks": stat.sacks,
-                "interceptions": stat.interceptions
+                "interceptions": stat.interceptions,
+                "passes_defensed": stat.passes_defensed,
+                "fumbles": stat.fumbles,
+                "fumbles_lost": stat.fumbles_lost,
+                "field_goals_made": stat.field_goals_made,
+                "field_goals_attempted": stat.field_goals_attempted,
+                "extra_points_made": stat.extra_points_made,
+                "extra_points_attempted": stat.extra_points_attempted
             })
             
             # Accumulate totals
@@ -181,9 +206,22 @@ def get_player_stats(player_id):
             "position": player.position,
             "team_name": team.name if team else "Unknown",
             "career_passing_yards": player.career_passing_yards,
+            "career_passing_completions": player.career_passing_completions,
+            "career_passing_attempts": player.career_passing_attempts,
+            "career_passing_touchdowns": player.career_passing_touchdowns,
             "career_rushing_yards": player.career_rushing_yards,
+            "career_rushing_attempts": player.career_rushing_attempts,
+            "career_rushing_touchdowns": player.career_rushing_touchdowns,
             "career_receiving_yards": player.career_receiving_yards,
-            "career_touchdowns": player.career_touchdowns
+            "career_receptions": player.career_receptions,
+            "career_receiving_touchdowns": player.career_receiving_touchdowns,
+            "career_tackles": player.career_tackles,
+            "career_sacks": player.career_sacks,
+            "career_interceptions": player.career_interceptions,
+            "career_passes_defensed": player.career_passes_defensed,
+            "career_touchdowns": player.career_touchdowns,
+            "career_fumbles": player.career_fumbles,
+            "career_fumbles_lost": player.career_fumbles_lost
         },
         "season_stats": {
             "games_played": total_games,
@@ -337,15 +375,34 @@ def create_stats():
     s = PlayerGameStats(
         player_id         = d["player_id"],
         game_id           = d["game_id"],
+        # Passing stats
         passing_yards     = d.get("passing_yards", 0),
+        passing_completions = d.get("passing_completions", 0),
+        passing_attempts  = d.get("passing_attempts", 0),
+        passing_touchdowns = d.get("passing_touchdowns", 0),
+        # Rushing stats
         rushing_yards     = d.get("rushing_yards", 0),
+        rushing_attempts  = d.get("rushing_attempts", 0),
+        rushing_touchdowns = d.get("rushing_touchdowns", 0),
+        # Receiving stats
         receiving_yards   = d.get("receiving_yards", 0),
+        receptions        = d.get("receptions", 0),
+        receiving_targets = d.get("receiving_targets", 0),
+        receiving_touchdowns = d.get("receiving_touchdowns", 0),
+        # Defensive stats
         tackles           = d.get("tackles", 0),
         sacks             = d.get("sacks", 0),
         interceptions     = d.get("interceptions", 0),
+        passes_defensed   = d.get("passes_defensed", 0),
+        # General stats
         touchdowns        = d.get("touchdowns", 0),
+        fumbles           = d.get("fumbles", 0),
+        fumbles_lost      = d.get("fumbles_lost", 0),
+        # Kicking stats
         field_goals_made  = d.get("field_goals_made", 0),
+        field_goals_attempted = d.get("field_goals_attempted", 0),
         extra_points_made = d.get("extra_points_made", 0),
+        extra_points_attempted = d.get("extra_points_attempted", 0)
     )
     db.session.add(s)
     
@@ -353,12 +410,22 @@ def create_stats():
     player = Player.query.get(s.player_id)
     if player:
         player.career_passing_yards += s.passing_yards
+        player.career_passing_completions += s.passing_completions
+        player.career_passing_attempts += s.passing_attempts
+        player.career_passing_touchdowns += s.passing_touchdowns
         player.career_rushing_yards += s.rushing_yards
+        player.career_rushing_attempts += s.rushing_attempts
+        player.career_rushing_touchdowns += s.rushing_touchdowns
         player.career_receiving_yards += s.receiving_yards
+        player.career_receptions += s.receptions
+        player.career_receiving_touchdowns += s.receiving_touchdowns
         player.career_tackles += s.tackles
         player.career_sacks += s.sacks
         player.career_interceptions += s.interceptions
+        player.career_passes_defensed += s.passes_defensed
         player.career_touchdowns += s.touchdowns
+        player.career_fumbles += s.fumbles
+        player.career_fumbles_lost += s.fumbles_lost
     
     db.session.commit()
     # composite PK → return both keys

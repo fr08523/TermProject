@@ -128,23 +128,34 @@ function Analytics() {
             <label>Sort by: </label>
             <select value={sortBy} onChange={(e) => handleSortChange(e.target.value)}>
               <option value="passing_yards">Passing Yards</option>
+              <option value="passing_touchdowns">Passing TDs</option>
               <option value="rushing_yards">Rushing Yards</option>
+              <option value="rushing_touchdowns">Rushing TDs</option>
               <option value="receiving_yards">Receiving Yards</option>
-              <option value="touchdowns">Touchdowns</option>
+              <option value="receiving_touchdowns">Receiving TDs</option>
+              <option value="receptions">Receptions</option>
+              <option value="touchdowns">Total Touchdowns</option>
               <option value="tackles">Tackles</option>
               <option value="sacks">Sacks</option>
               <option value="interceptions">Interceptions</option>
+              <option value="passes_defensed">Passes Defensed</option>
+              <option value="fumbles">Fumbles</option>
             </select>
           </div>
           <div className="position-filter">
             <label>Position: </label>
             <select value={selectedPosition} onChange={(e) => handlePositionFilter(e.target.value)}>
               <option value="">All Positions</option>
-              <option value="QB">QB</option>
-              <option value="RB">RB</option>
-              <option value="WR">WR</option>
-              <option value="TE">TE</option>
-              <option value="K">K</option>
+              <option value="QB">Quarterback (QB)</option>
+              <option value="RB">Running Back (RB)</option>
+              <option value="WR">Wide Receiver (WR)</option>
+              <option value="TE">Tight End (TE)</option>
+              <option value="K">Kicker (K)</option>
+              <option value="LB">Linebacker (LB)</option>
+              <option value="CB">Cornerback (CB)</option>
+              <option value="S">Safety (S)</option>
+              <option value="DE">Defensive End (DE)</option>
+              <option value="DT">Defensive Tackle (DT)</option>
             </select>
           </div>
         </div>
@@ -157,10 +168,17 @@ function Analytics() {
                   <th>Player</th>
                   <th>Position</th>
                   <th>Team</th>
-                  <th>Career Passing</th>
-                  <th>Career Rushing</th>
-                  <th>Career Receiving</th>
-                  <th>Career TDs</th>
+                  <th>Pass Yds</th>
+                  <th>Comp %</th>
+                  <th>Pass TDs</th>
+                  <th>Rush Yds</th>
+                  <th>Rush TDs</th>
+                  <th>Rec Yds</th>
+                  <th>Rec TDs</th>
+                  <th>Total TDs</th>
+                  <th>Tackles</th>
+                  <th>Sacks</th>
+                  <th>INTs</th>
                   <th className="highlight">{sortBy.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>
                 </tr>
               </thead>
@@ -172,9 +190,16 @@ function Analytics() {
                     <td>{player.position}</td>
                     <td>{player.team}</td>
                     <td>{player.career_passing_yards.toLocaleString()}</td>
+                    <td>{player.completion_percentage}%</td>
+                    <td>{player.career_passing_touchdowns}</td>
                     <td>{player.career_rushing_yards.toLocaleString()}</td>
+                    <td>{player.career_rushing_touchdowns}</td>
                     <td>{player.career_receiving_yards.toLocaleString()}</td>
+                    <td>{player.career_receiving_touchdowns}</td>
                     <td>{player.career_touchdowns}</td>
+                    <td>{player.career_tackles}</td>
+                    <td>{player.career_sacks}</td>
+                    <td>{player.career_interceptions}</td>
                     <td className="highlight">{player.sorted_value.toLocaleString()}</td>
                   </tr>
                 ))}

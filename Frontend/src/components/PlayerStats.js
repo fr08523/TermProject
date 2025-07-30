@@ -10,6 +10,10 @@ function PlayerStats() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchPerformed, setSearchPerformed] = useState(false);
+  
+  // Sorting state for game logs table
+  const [sortField, setSortField] = useState('game_date');
+  const [sortDirection, setSortDirection] = useState('desc');
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
@@ -65,6 +69,51 @@ function PlayerStats() {
     setPlayerStats(null);
     setSearchPerformed(false);
     setError('');
+    // Reset sorting
+    setSortField('game_date');
+    setSortDirection('desc');
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to descending for most stats, ascending for dates
+      setSortField(field);
+      setSortDirection(field === 'game_date' || field === 'week' ? 'asc' : 'desc');
+    }
+  };
+
+  const sortGameLogs = (gameLogs) => {
+    if (!gameLogs || !Array.isArray(gameLogs)) return [];
+    
+    return [...gameLogs].sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      // Handle different data types
+      if (sortField === 'game_date') {
+        aValue = new Date(aValue || '1900-01-01');
+        bValue = new Date(bValue || '1900-01-01');
+      } else if (sortField === 'opponent') {
+        aValue = (aValue || '').toLowerCase();
+        bValue = (bValue || '').toLowerCase();
+      } else {
+        // Numeric fields
+        aValue = aValue || 0;
+        bValue = bValue || 0;
+      }
+      
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return ' ↕️';
+    return sortDirection === 'asc' ? ' ↑' : ' ↓';
   };
 
   return (
@@ -148,16 +197,64 @@ function PlayerStats() {
                   <span className="stat-value">{playerStats.player.career_passing_yards?.toLocaleString() || 0}</span>
                 </div>
                 <div className="stat-item">
+                  <span className="stat-label">Completion %</span>
+                  <span className="stat-value">
+                    {playerStats.player.career_passing_attempts > 0 
+                      ? ((playerStats.player.career_passing_completions / playerStats.player.career_passing_attempts) * 100).toFixed(1) + '%'
+                      : '0.0%'}
+                  </span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Passing TDs</span>
+                  <span className="stat-value">{playerStats.player.career_passing_touchdowns || 0}</span>
+                </div>
+                <div className="stat-item">
                   <span className="stat-label">Rushing Yards</span>
                   <span className="stat-value">{playerStats.player.career_rushing_yards?.toLocaleString() || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Yards per Rush</span>
+                  <span className="stat-value">
+                    {playerStats.player.career_rushing_attempts > 0 
+                      ? (playerStats.player.career_rushing_yards / playerStats.player.career_rushing_attempts).toFixed(1)
+                      : '0.0'}
+                  </span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Rushing TDs</span>
+                  <span className="stat-value">{playerStats.player.career_rushing_touchdowns || 0}</span>
                 </div>
                 <div className="stat-item">
                   <span className="stat-label">Receiving Yards</span>
                   <span className="stat-value">{playerStats.player.career_receiving_yards?.toLocaleString() || 0}</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">Career Touchdowns</span>
+                  <span className="stat-label">Receptions</span>
+                  <span className="stat-value">{playerStats.player.career_receptions || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Receiving TDs</span>
+                  <span className="stat-value">{playerStats.player.career_receiving_touchdowns || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Total Touchdowns</span>
                   <span className="stat-value">{playerStats.player.career_touchdowns || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Tackles</span>
+                  <span className="stat-value">{playerStats.player.career_tackles || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Sacks</span>
+                  <span className="stat-value">{playerStats.player.career_sacks || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Interceptions</span>
+                  <span className="stat-value">{playerStats.player.career_interceptions || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Fumbles</span>
+                  <span className="stat-value">{playerStats.player.career_fumbles || 0}</span>
                 </div>
               </div>
             </div>
@@ -200,29 +297,125 @@ function PlayerStats() {
                 <table>
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Week</th>
-                      <th>Opponent</th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('game_date')}
+                        title="Click to sort by date"
+                      >
+                        Date{getSortIcon('game_date')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('week')}
+                        title="Click to sort by week"
+                      >
+                        Week{getSortIcon('week')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('opponent')}
+                        title="Click to sort by opponent"
+                      >
+                        Opponent{getSortIcon('opponent')}
+                      </th>
                       <th>Score</th>
-                      <th>Pass Yds</th>
-                      <th>Rush Yds</th>
-                      <th>Rec Yds</th>
-                      <th>TDs</th>
-                      <th>INT</th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('passing_yards')}
+                        title="Click to sort by passing yards"
+                      >
+                        Pass Yds{getSortIcon('passing_yards')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('passing_completions')}
+                        title="Click to sort by completions"
+                      >
+                        Comp{getSortIcon('passing_completions')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('passing_attempts')}
+                        title="Click to sort by attempts"
+                      >
+                        Att{getSortIcon('passing_attempts')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('rushing_yards')}
+                        title="Click to sort by rushing yards"
+                      >
+                        Rush Yds{getSortIcon('rushing_yards')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('receiving_yards')}
+                        title="Click to sort by receiving yards"
+                      >
+                        Rec Yds{getSortIcon('receiving_yards')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('receptions')}
+                        title="Click to sort by receptions"
+                      >
+                        Rec{getSortIcon('receptions')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('touchdowns')}
+                        title="Click to sort by total touchdowns"
+                      >
+                        Total TDs{getSortIcon('touchdowns')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('fumbles')}
+                        title="Click to sort by fumbles"
+                      >
+                        Fum{getSortIcon('fumbles')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('interceptions')}
+                        title="Click to sort by interceptions"
+                      >
+                        INT{getSortIcon('interceptions')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('tackles')}
+                        title="Click to sort by tackles"
+                      >
+                        Tackles{getSortIcon('tackles')}
+                      </th>
+                      <th 
+                        className="sortable-header" 
+                        onClick={() => handleSort('sacks')}
+                        title="Click to sort by sacks"
+                      >
+                        Sacks{getSortIcon('sacks')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {playerStats.game_logs.map((game, index) => (
+                    {sortGameLogs(playerStats.game_logs).map((game, index) => (
                       <tr key={`${game.game_id}-${index}`}>
                         <td>{game.game_date ? new Date(game.game_date).toLocaleDateString() : 'N/A'}</td>
                         <td>{game.week}</td>
                         <td>{game.opponent}</td>
                         <td>{game.home_score}-{game.away_score}</td>
-                        <td>{game.passing_yards}</td>
-                        <td>{game.rushing_yards}</td>
-                        <td>{game.receiving_yards}</td>
-                        <td>{game.touchdowns}</td>
-                        <td>{game.interceptions}</td>
+                        <td className="stat-cell">{game.passing_yards}</td>
+                        <td className="stat-cell">{game.passing_completions || 0}</td>
+                        <td className="stat-cell">{game.passing_attempts || 0}</td>
+                        <td className="stat-cell">{game.rushing_yards}</td>
+                        <td className="stat-cell">{game.receiving_yards}</td>
+                        <td className="stat-cell">{game.receptions || 0}</td>
+                        <td className="stat-cell highlight">{game.touchdowns}</td>
+                        <td className="stat-cell">{game.fumbles || 0}</td>
+                        <td className="stat-cell">{game.interceptions}</td>
+                        <td className="stat-cell">{game.tackles}</td>
+                        <td className="stat-cell">{game.sacks}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -383,12 +383,18 @@ def career_leaders():
     # Map sort parameters to Player model fields
     sort_field_map = {
         'passing_yards': Player.career_passing_yards,
+        'passing_touchdowns': Player.career_passing_touchdowns,
         'rushing_yards': Player.career_rushing_yards,
+        'rushing_touchdowns': Player.career_rushing_touchdowns,
         'receiving_yards': Player.career_receiving_yards,
+        'receiving_touchdowns': Player.career_receiving_touchdowns,
+        'receptions': Player.career_receptions,
         'touchdowns': Player.career_touchdowns,
         'tackles': Player.career_tackles,
         'sacks': Player.career_sacks,
-        'interceptions': Player.career_interceptions
+        'interceptions': Player.career_interceptions,
+        'passes_defensed': Player.career_passes_defensed,
+        'fumbles': Player.career_fumbles
     }
     
     if sort_by not in sort_field_map:
@@ -401,12 +407,22 @@ def career_leaders():
         Player.position,
         Team.name.label('team_name'),
         Player.career_passing_yards,
+        Player.career_passing_completions,
+        Player.career_passing_attempts,
+        Player.career_passing_touchdowns,
         Player.career_rushing_yards,
+        Player.career_rushing_attempts,
+        Player.career_rushing_touchdowns,
         Player.career_receiving_yards,
+        Player.career_receptions,
+        Player.career_receiving_touchdowns,
         Player.career_touchdowns,
         Player.career_tackles,
         Player.career_sacks,
-        Player.career_interceptions
+        Player.career_interceptions,
+        Player.career_passes_defensed,
+        Player.career_fumbles,
+        Player.career_fumbles_lost
     ).join(Team, Player.team_id == Team.id)
     
     # Apply position filter if provided
@@ -425,15 +441,32 @@ def career_leaders():
             'name': row.name,
             'position': row.position,
             'team': row.team_name,
+            # Passing stats
             'career_passing_yards': row.career_passing_yards,
+            'career_passing_completions': row.career_passing_completions,
+            'career_passing_attempts': row.career_passing_attempts,
+            'career_passing_touchdowns': row.career_passing_touchdowns,
+            'completion_percentage': round((row.career_passing_completions / max(row.career_passing_attempts, 1)) * 100, 1),
+            # Rushing stats
             'career_rushing_yards': row.career_rushing_yards,
+            'career_rushing_attempts': row.career_rushing_attempts,
+            'career_rushing_touchdowns': row.career_rushing_touchdowns,
+            'yards_per_rush': round(row.career_rushing_yards / max(row.career_rushing_attempts, 1), 1),
+            # Receiving stats
             'career_receiving_yards': row.career_receiving_yards,
+            'career_receptions': row.career_receptions,
+            'career_receiving_touchdowns': row.career_receiving_touchdowns,
+            'yards_per_reception': round(row.career_receiving_yards / max(row.career_receptions, 1), 1),
+            # General stats
             'career_touchdowns': row.career_touchdowns,
             'career_tackles': row.career_tackles,
             'career_sacks': row.career_sacks,
             'career_interceptions': row.career_interceptions,
+            'career_passes_defensed': row.career_passes_defensed,
+            'career_fumbles': row.career_fumbles,
+            'career_fumbles_lost': row.career_fumbles_lost,
             'sorted_by': sort_by,
-            'sorted_value': getattr(row, f'career_{sort_by}') if sort_by != 'touchdowns' else row.career_touchdowns
+            'sorted_value': getattr(row, f'career_{sort_by}') if hasattr(row, f'career_{sort_by}') else getattr(row, f'career_touchdowns' if sort_by == 'touchdowns' else f'career_{sort_by}')
         }
         for row in results
     ])

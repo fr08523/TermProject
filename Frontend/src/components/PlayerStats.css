@@ -297,6 +297,32 @@
   top: 0;
 }
 
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortable-header:hover {
+  background: #e9ecef !important;
+  color: #007bff;
+}
+
+.sortable-header:active {
+  background: #dee2e6 !important;
+}
+
+.stat-cell {
+  text-align: center;
+  font-weight: 500;
+}
+
+.stat-cell.highlight {
+  background: #fff3cd;
+  color: #856404;
+  font-weight: 700;
+}
+
 .game-logs-table tr:hover {
   background: #f8f9fa;
 }

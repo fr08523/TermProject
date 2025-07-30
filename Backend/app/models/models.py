@@ -39,13 +39,34 @@ class Player(db.Model):
     name                   = db.Column(db.String(120), nullable=False)
     position               = db.Column(db.String(50))
     team_id                = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=False)
+    
+    # Career passing stats
     career_passing_yards   = db.Column(db.Integer, default=0)
+    career_passing_completions = db.Column(db.Integer, default=0)
+    career_passing_attempts = db.Column(db.Integer, default=0)
+    career_passing_touchdowns = db.Column(db.Integer, default=0)
+    
+    # Career rushing stats
     career_rushing_yards   = db.Column(db.Integer, default=0)
+    career_rushing_attempts = db.Column(db.Integer, default=0)
+    career_rushing_touchdowns = db.Column(db.Integer, default=0)
+    
+    # Career receiving stats
     career_receiving_yards = db.Column(db.Integer, default=0)
+    career_receptions      = db.Column(db.Integer, default=0)
+    career_receiving_touchdowns = db.Column(db.Integer, default=0)
+    
+    # Career defensive stats
     career_tackles         = db.Column(db.Integer, default=0)
     career_sacks           = db.Column(db.Integer, default=0)
     career_interceptions   = db.Column(db.Integer, default=0)
+    career_passes_defensed = db.Column(db.Integer, default=0)
+    
+    # Career general stats
     career_touchdowns      = db.Column(db.Integer, default=0)
+    career_fumbles         = db.Column(db.Integer, default=0)
+    career_fumbles_lost    = db.Column(db.Integer, default=0)
+    
     salaries               = db.relationship("PlayerSalary", backref="player", cascade="all, delete-orphan")
     injuries               = db.relationship("Injury", backref="player", cascade="all, delete-orphan")
     stats                  = db.relationship("PlayerGameStats", backref="player", cascade="all, delete-orphan")
@@ -67,15 +88,40 @@ class Game(db.Model):   # renamed from Match to match your FD
 class PlayerGameStats(db.Model):
     player_id         = db.Column(db.Integer, db.ForeignKey("player.id"),   primary_key=True)
     game_id           = db.Column(db.Integer, db.ForeignKey("game.id"),     primary_key=True)
+    
+    # Passing stats
     passing_yards     = db.Column(db.Integer, default=0)
+    passing_completions = db.Column(db.Integer, default=0)
+    passing_attempts  = db.Column(db.Integer, default=0)
+    passing_touchdowns = db.Column(db.Integer, default=0)
+    
+    # Rushing stats  
     rushing_yards     = db.Column(db.Integer, default=0)
+    rushing_attempts  = db.Column(db.Integer, default=0)
+    rushing_touchdowns = db.Column(db.Integer, default=0)
+    
+    # Receiving stats
     receiving_yards   = db.Column(db.Integer, default=0)
+    receptions        = db.Column(db.Integer, default=0)
+    receiving_targets = db.Column(db.Integer, default=0)
+    receiving_touchdowns = db.Column(db.Integer, default=0)
+    
+    # Defensive stats
     tackles           = db.Column(db.Integer, default=0)
     sacks             = db.Column(db.Integer, default=0)
     interceptions     = db.Column(db.Integer, default=0)
-    touchdowns        = db.Column(db.Integer, default=0)
+    passes_defensed   = db.Column(db.Integer, default=0)
+    
+    # General stats
+    touchdowns        = db.Column(db.Integer, default=0)  # Total TDs
+    fumbles           = db.Column(db.Integer, default=0)
+    fumbles_lost      = db.Column(db.Integer, default=0)
+    
+    # Kicking stats
     field_goals_made  = db.Column(db.Integer, default=0)
+    field_goals_attempted = db.Column(db.Integer, default=0)
     extra_points_made = db.Column(db.Integer, default=0)
+    extra_points_attempted = db.Column(db.Integer, default=0)
 
 class Injury(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
