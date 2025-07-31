@@ -8,8 +8,7 @@ from datetime import datetime, date
 def init_database():
     app = create_app()
     with app.app_context():
-        # Drop all tables and recreate
-        db.drop_all()
+        # Create all tables (this will handle existing tables gracefully)
         db.create_all()
         
         # Create a test user
@@ -115,8 +114,8 @@ def init_database():
         
         db.session.add_all([dak_salary, daniel_salary])
         
-        # Create sample injury
-        injury = Injury(
+        # Create sample injuries with different severity levels
+        injury1 = Injury(
             player_id=saquon_barkley.id,
             start_date=date(2024, 8, 15),
             end_date=date(2024, 9, 1),
@@ -124,7 +123,39 @@ def init_database():
             severity="Minor"
         )
         
-        db.session.add(injury)
+        injury2 = Injury(
+            player_id=dak_prescott.id,
+            start_date=date(2024, 9, 20),
+            end_date=None,  # Active injury
+            description="Shoulder strain from hard hit in game",
+            severity="Moderate"
+        )
+        
+        injury3 = Injury(
+            player_id=daniel_jones.id,
+            start_date=date(2024, 8, 5),
+            end_date=date(2024, 8, 25),
+            description="Hamstring pull during conditioning",
+            severity="Minor"
+        )
+        
+        injury4 = Injury(
+            player_id=ezekiel_elliott.id,
+            start_date=date(2024, 9, 10),
+            end_date=None,  # Active injury
+            description="Knee contusion from contact play",
+            severity="Severe"
+        )
+        
+        injury5 = Injury(
+            player_id=ceedee_lamb.id,
+            start_date=date(2024, 7, 15),
+            end_date=date(2024, 8, 10),
+            description="Mild concussion during practice",
+            severity="Critical"
+        )
+
+        db.session.add_all([injury1, injury2, injury3, injury4, injury5])
         db.session.commit()
         
         print("Database initialized successfully with sample data!")
