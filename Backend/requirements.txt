@@ -7,6 +7,9 @@ Flask-SQLAlchemy
 python-dotenv
 Flask-Migrate
 bcrypt==4.3.0
+requests
+beautifulsoup4
+lxml
 
 
 
