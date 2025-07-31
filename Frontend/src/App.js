@@ -6,6 +6,7 @@ import DataManagement from "./components/DataManagement";
 import Analytics from "./components/Analytics";
 import PlayerStats from "./components/PlayerStats";
 import InjuryReport from "./components/InjuryReport";
+import NFLData from "./components/NFLData";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -31,6 +32,7 @@ function App() {
               <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <Link to="/home" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
                 <Link to="/player-stats" style={{ color: 'white', textDecoration: 'none' }}>Player Stats</Link>
+                <Link to="/nfl-data" style={{ color: 'white', textDecoration: 'none' }}>NFL Data</Link>
                 <Link to="/injuries" style={{ color: 'white', textDecoration: 'none' }}>Injury Report</Link>
                 <Link to="/manage" style={{ color: 'white', textDecoration: 'none' }}>Data Management</Link>
                 <Link to="/analytics" style={{ color: 'white', textDecoration: 'none' }}>Analytics</Link>
@@ -64,6 +66,10 @@ function App() {
           <Route
             path="/player-stats"
             element={isAuthenticated ? <PlayerStats /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/nfl-data"
+            element={isAuthenticated ? <NFLData /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/manage"
