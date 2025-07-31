@@ -13,7 +13,7 @@ def init_database():
         
         # Create a test user
         user = User(username="admin")
-        user.set_password("password123")
+        user.set_password("admin123")
         db.session.add(user)
         
         # Create leagues
