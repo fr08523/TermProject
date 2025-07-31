@@ -1,0 +1,284 @@
+.injury-report-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.injury-report-container h2 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.injury-subtitle {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+/* Filters */
+.injury-filters {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+.filter-group select {
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.filter-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Statistics Cards */
+.injury-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Table Styles */
+.injury-table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.injury-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.injury-table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  padding: 1rem 0.75rem;
+  text-align: left;
+  border: none;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.injury-table td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+  vertical-align: middle;
+}
+
+.injury-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.injury-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.active-injury {
+  background-color: #fff5f5 !important;
+}
+
+.recovered-injury {
+  background-color: #f0fff4 !important;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.injury-description {
+  max-width: 200px;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.duration {
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Severity Badges */
+.severity-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.severity-critical {
+  background-color: #dc3545;
+  color: white;
+}
+
+.severity-severe {
+  background-color: #fd7e14;
+  color: white;
+}
+
+.severity-moderate {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.severity-minor {
+  background-color: #20c997;
+  color: white;
+}
+
+.severity-mild {
+  background-color: #6f42c1;
+  color: white;
+}
+
+.severity-unknown {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-active {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-recovered {
+  background-color: #28a745;
+  color: white;
+}
+
+/* Loading and Error States */
+.injury-loading, .injury-error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+}
+
+.injury-error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+}
+
+.injury-loading {
+  color: #495057;
+}
+
+.no-data {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 2rem !important;
+}
+
+/* Refresh Button */
+.refresh-section {
+  text-align: center;
+}
+
+.refresh-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.refresh-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .injury-report-container {
+    padding: 1rem;
+  }
+  
+  .injury-filters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .injury-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .injury-table {
+    font-size: 0.8rem;
+  }
+  
+  .injury-table th,
+  .injury-table td {
+    padding: 0.5rem;
+  }
+  
+  .injury-description {
+    max-width: 150px;
+  }
+}

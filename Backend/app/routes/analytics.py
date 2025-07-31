@@ -233,21 +233,8 @@ def injury_report():
     active_only = request.args.get('active_only', default='false').lower() == 'true'
     severity = request.args.get('severity', type=str)
     
-    # Complex query with date calculations
-    query = db.session.query(
-        Injury.id,
-        Player.name.label('player_name'),
-        Player.position,
-        Team.name.label('team_name'),
-        Injury.description,
-        Injury.severity,
-        Injury.start_date,
-        Injury.end_date,
-        case(
-            (Injury.end_date.is_(None), func.current_date() - Injury.start_date),
-            else_=Injury.end_date - Injury.start_date
-        ).label('duration_days')
-    ).join(Player).join(Team)
+    # Simplified query that works reliably
+    query = db.session.query(Injury).join(Player).join(Team)
     
     # Apply filters with proper SQL injection prevention
     if team_id:
@@ -263,21 +250,31 @@ def injury_report():
     
     results = query.all()
     
-    return jsonify([
-        {
-            'injury_id': row.id,
-            'player_name': row.player_name,
-            'position': row.position,
-            'team_name': row.team_name,
-            'description': row.description,
-            'severity': row.severity,
-            'start_date': row.start_date.isoformat() if row.start_date else None,
-            'end_date': row.end_date.isoformat() if row.end_date else None,
-            'duration_days': row.duration_days.days if row.duration_days else None,
-            'is_active': row.end_date is None
-        }
-        for row in results
-    ])
+    injury_data = []
+    for injury in results:
+        # Calculate duration manually
+        duration_days = None
+        if injury.start_date:
+            if injury.end_date:
+                duration_days = (injury.end_date - injury.start_date).days
+            else:
+                from datetime import date
+                duration_days = (date.today() - injury.start_date).days
+        
+        injury_data.append({
+            'injury_id': injury.id,
+            'player_name': injury.player.name,
+            'position': injury.player.position,
+            'team_name': injury.player.current_team.name,
+            'description': injury.description,
+            'severity': injury.severity,
+            'start_date': injury.start_date.isoformat() if injury.start_date else None,
+            'end_date': injury.end_date.isoformat() if injury.end_date else None,
+            'duration_days': duration_days,
+            'is_active': injury.end_date is None
+        })
+    
+    return jsonify(injury_data)
 
 @analytics_bp.get("/top-performers")
 def top_performers():

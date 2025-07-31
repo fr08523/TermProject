@@ -161,4 +161,122 @@ tbody tr:nth-child(even):hover {
   .analytics-container h2 {
     font-size: 24px;
   }
+  
+  .performers-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .performer-item {
+    padding: 0.75rem;
+  }
+  
+  .performer-item .rank {
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Enhanced analytics styles */
+.performers-section {
+  margin-bottom: 2rem;
+}
+
+.performers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.performer-category h4 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #3498db;
+}
+
+.performer-list {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.performer-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.performer-item:last-child {
+  border-bottom: none;
+}
+
+.performer-item .rank {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 1rem;
+  font-size: 0.9rem;
+}
+
+.performer-info {
+  flex: 1;
+}
+
+.performer-info strong {
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.performer-info small {
+  color: #7f8c8d;
+  font-size: 0.85rem;
+}
+
+.injury-analytics-section {
+  margin-bottom: 2rem;
+}
+
+.injury-card {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.comparison-section {
+  margin-bottom: 2rem;
+}
+
+.rank-cell {
+  font-weight: bold;
+  color: #3498db;
+  text-align: center;
+}
+
+.top-team {
+  background-color: #fff9c4 !important;
+  font-weight: bold;
+}
+
+.wins-cell {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.losses-cell {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.percentage-cell {
+  font-weight: bold;
+  color: #2c3e50;
 }
